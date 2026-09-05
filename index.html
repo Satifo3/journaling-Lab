@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#e8f2ef">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>Journal Lab v0.5</title>
+<title>Journal Lab v0.6</title>
 <style>
 :root{--bg:#e8f2ef;--paper:#fbfdfc;--ink:#17383a;--muted:#6f8688;--line:#b6d7d1;--teal:#157f82;--red:#b96969;--blue:#3b6fa7;}
 *{box-sizing:border-box}
@@ -19,8 +19,8 @@ h1{font-size:42px;line-height:1;margin:0} h2{margin:2px 0 0;font-size:22px}
 .eyebrow{font-size:11px;letter-spacing:.16em;color:var(--teal);font-weight:800}
 .goal{flex:1} .goal label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:5px}
 input[type=text],input[type=date],textarea{width:100%;border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 12px;color:var(--ink);outline:none}
-.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;padding:6px;background:rgba(251,253,252,.92);border:1px solid var(--line);border-radius:18px;position:sticky;top:8px;z-index:8}
-.tab{border:0;background:transparent;border-radius:12px;padding:11px 5px;font-weight:800;color:var(--muted);font-size:12px} .tab.active{background:var(--teal);color:white}
+.tabs{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;padding:6px;background:rgba(251,253,252,.92);border:1px solid var(--line);border-radius:18px;position:sticky;top:8px;z-index:8}
+.tab{border:0;background:transparent;border-radius:12px;padding:11px 3px;font-weight:800;color:var(--muted);font-size:11px} .tab.active{background:var(--teal);color:white}
 .view{display:none;padding-top:14px} .view.active{display:block}
 .card{background:rgba(251,253,252,.96);border:1px solid var(--line);border-radius:20px;padding:14px;margin-bottom:14px;box-shadow:0 10px 30px rgba(20,70,68,.07)}
 .rowhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
@@ -56,6 +56,14 @@ canvas{width:100%;height:auto;background:#fff;border-radius:12px}
 .settings p{color:var(--muted);line-height:1.6}
 dialog{border:0;border-radius:18px;max-width:92vw;width:520px;padding:0} dialog::backdrop{background:rgba(0,0,0,.35)} .dialog{padding:18px;background:var(--paper);display:grid;gap:10px}
 @media(min-width:720px){.app{padding-top:36px}.voicegrid{grid-template-columns:1fr 1fr}}
+
+.hidden{display:none!important}
+.yt-note{color:var(--muted);font-size:12px;line-height:1.55;margin:8px 0}
+.yt-controls{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:7px;align-items:center}
+.youtube-wrap{margin-top:10px;border-radius:14px;overflow:hidden;background:#000;aspect-ratio:16/9}
+.youtube-wrap iframe{width:100%;height:100%;border:0;display:block}
+@media(max-width:560px){.yt-controls{grid-template-columns:1fr 1fr}.yt-controls input{grid-column:1/-1}.tabs{gap:3px;padding:5px}.tab{font-size:10px;padding:10px 1px}}
+
 </style>
 </head>
 <body>
@@ -67,6 +75,7 @@ dialog{border:0;border-radius:18px;max-width:92vw;width:520px;padding:0} dialog:
 
 <nav class="tabs">
   <button class="tab active" data-v="journal">Journal</button>
+  <button class="tab" data-v="diary">Diary</button>
   <button class="tab" data-v="tracker">Tracker</button>
   <button class="tab" data-v="focus">Focus</button>
   <button class="tab" data-v="tasks">Tasks</button>
@@ -80,6 +89,10 @@ dialog{border:0;border-radius:18px;max-width:92vw;width:520px;padding:0} dialog:
     <div class="habit-legend"><span>日付</span><span>その日やること</span><div id="habitLabels" class="habit-labels"></div></div>
     <div id="dailyRows" class="compact-list"></div>
   </div>
+</section>
+
+<section id="diary" class="view">
+  <div class="monthnav"><button id="prevDiary" class="btn">← 前月</button><button id="nextDiary" class="btn">次月 →</button></div>
   <div class="card">
     <div class="rowhead"><div><div class="eyebrow">ONE LINE DIARY</div><h2>1行日記</h2></div><button id="quick" class="btn primary">＋クイック記録</button></div>
     <div id="journalRows" class="compact-list"></div>
@@ -108,6 +121,19 @@ dialog{border:0;border-radius:18px;max-width:92vw;width:520px;padding:0} dialog:
     <div id="bgmStatus" class="status">選択中：川のせせらぎ</div>
     <label>音量 <input id="bgmVol" type="range" min="0" max="100" value="40"></label>
   </div>
+  <div class="card youtube-card">
+    <div class="eyebrow">YOUTUBE BGM</div><h2>YouTubeヒーリングBGM</h2>
+    <p class="yt-note">YouTubeのURLを貼って「読み込み・再生」。音声を抜き出さず、YouTubeプレイヤーをアプリ内で再生します。</p>
+    <div class="yt-controls">
+      <input id="youtubeUrl" type="text" inputmode="url" value="https://youtu.be/soJ4uc1mgKM?si=h-uqz3bM2RozKZJ7" placeholder="https://youtu.be/...">
+      <button id="youtubeLoad" class="btn primary">読み込み・再生</button>
+      <button id="youtubeStop" class="btn">停止</button>
+    </div>
+    <div id="youtubeStatus" class="status">焚き火BGMのURLをセット済み</div>
+    <div id="youtubePlayerWrap" class="youtube-wrap hidden"><iframe id="youtubePlayer" title="YouTube BGM" src="" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>
+    <p class="yt-note">※ iPhoneで画面ロック・Safariを完全にバックグラウンド化した時の継続再生は、YouTube/iOS側の動作に依存します。</p>
+  </div>
+
   <div class="card">
     <div class="eyebrow">TSUMUGI VOICE</div><h2>つむぎボイス WAV読込</h2>
     <p style="color:var(--muted);line-height:1.5">iPhoneの「ファイル」からWAVを選ぶと、この端末に保存して次回から自動再生します。GitHubへ音声をアップロードする必要はありません。</p>
@@ -136,8 +162,9 @@ const VOICE = {
  finish25:{label:"25分終了",text:"お疲れ様です！ちょっと立ち上がってストレッチしましょう！"},
  finish50:{label:"50分終了",text:"50分集中できました！少し長めに休憩してくださいね！"}
 };
-const KEY="journal-lab-v05";
-let state=JSON.parse(localStorage.getItem(KEY)||"null")||{months:{},habits:["S","ア","A","B"],sound:"river",bgmVol:40};
+const KEY="journal-lab-v06";
+let state=JSON.parse(localStorage.getItem(KEY)||"null")||{months:{},habits:["S","ア","A","B"],sound:"river",bgmVol:40,youtubeURL:"https://youtu.be/soJ4uc1mgKM?si=h-uqz3bM2RozKZJ7"};
+state.youtubeURL ||= "https://youtu.be/soJ4uc1mgKM?si=h-uqz3bM2RozKZJ7";
 let cur=new Date();cur.setDate(1);
 let total=1500,left=1500,tInt=null,bgmAudio=null,bgmOn=false,midDone=false;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
@@ -202,9 +229,37 @@ async function delVoice(key){let db=await openDB();return new Promise((res,rej)=
 async function playVoice(key){let f=await getVoice(key);if(f){let u=URL.createObjectURL(f),a=new Audio(u);a.play();a.onended=()=>URL.revokeObjectURL(u);return}if("speechSynthesis"in window){let u=new SpeechSynthesisUtterance(VOICE[key].text);u.lang="ja-JP";u.pitch=1.12;speechSynthesis.cancel();speechSynthesis.speak(u)}}
 async function renderVoice(){let w=$("#voiceGrid");w.innerHTML="";for(let [key,v] of Object.entries(VOICE)){let f=await getVoice(key);let d=document.createElement("div");d.className="voiceitem";d.innerHTML=`<strong>${v.label}</strong><small>${v.text}</small><div class="voicebtns"><label class="btn filebtn">WAV読込<input type="file" accept=".wav,audio/wav" data-vf="${key}"></label><button class="btn" data-vp="${key}">テスト</button>${f?`<button class="btn" data-vd="${key}">削除</button>`:""}</div><div class="status">${f?"WAV登録済み":"未登録（iPhone音声で代替）"}</div>`;w.appendChild(d)};$$("[data-vf]").forEach(i=>i.onchange=async()=>{let f=i.files[0];if(f){await saveVoice(i.dataset.vf,f);$("#voiceStatus").textContent="WAVを保存しました";renderVoice()}});$$("[data-vp]").forEach(b=>b.onclick=()=>playVoice(b.dataset.vp));$$("[data-vd]").forEach(b=>b.onclick=async()=>{await delVoice(b.dataset.vd);renderVoice()})}
 
+
+function youtubeId(url){
+ try{
+  let u=new URL(url.trim());
+  if(u.hostname.includes("youtu.be")) return u.pathname.split("/").filter(Boolean)[0]||null;
+  if(u.hostname.includes("youtube.com")||u.hostname.includes("youtube-nocookie.com")){
+   if(u.pathname==="/watch") return u.searchParams.get("v");
+   let p=u.pathname.split("/").filter(Boolean); if(["embed","shorts","live"].includes(p[0])) return p[1]||null;
+  }
+ }catch(e){}
+ let m=url.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([A-Za-z0-9_-]{6,})/);return m?m[1]:null;
+}
+function loadYoutube(){
+ let raw=$("#youtubeUrl").value.trim(),id=youtubeId(raw);
+ if(!id){$("#youtubeStatus").textContent="YouTube URLを認識できませんでした";return}
+ state.youtubeURL=raw;save();
+ $("#youtubePlayer").src=`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&playsinline=1&rel=0`;
+ $("#youtubePlayerWrap").classList.remove("hidden");
+ $("#youtubeStatus").textContent="YouTube BGMを読み込みました。再生ボタンが必要な場合は動画内をタップしてください。";
+}
+function stopYoutube(){
+ $("#youtubePlayer").src="";$("#youtubePlayerWrap").classList.add("hidden");$("#youtubeStatus").textContent="YouTube BGM停止中";
+}
+$("#youtubeUrl").value=state.youtubeURL;
+$("#youtubeLoad").onclick=loadYoutube;
+$("#youtubeStop").onclick=stopYoutube;
+
 $$(".tab").forEach(b=>b.onclick=()=>setView(b.dataset.v));
 $("#goal").oninput=e=>{month().goal=e.target.value;save()};
 $("#prev").onclick=()=>{cur.setMonth(cur.getMonth()-1);render()};$("#next").onclick=()=>{cur.setMonth(cur.getMonth()+1);render()};
+$("#prevDiary").onclick=()=>{cur.setMonth(cur.getMonth()-1);render()};$("#nextDiary").onclick=()=>{cur.setMonth(cur.getMonth()+1);render()};
 $("#editHabits").onclick=()=>{$("#habitEditor").innerHTML=state.habits.map((x,i)=>`<label>枠${i+1}<input type="text" maxlength="2" value="${x}" data-he="${i}"></label>`).join("");$("#habitDialog").showModal()};
 $("#habitSave").onclick=()=>{$$("[data-he]").forEach(x=>state.habits[+x.dataset.he]=x.value||String(+x.dataset.he+1));save();render()};
 $("#quick").onclick=()=>{$("#qDate").value=new Date().toISOString().slice(0,10);$("#qText").value="";$("#quickDialog").showModal()};
