@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#e8f2ef">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>Journal Lab v1.0</title>
+<title>Journal Lab v1.1</title>
 <style>
 :root{--bg:#e8f2ef;--paper:#fbfdfc;--ink:#17383a;--muted:#6f8688;--line:#b6d7d1;--teal:#157f82;--red:#b96969;--blue:#3b6fa7;}
 *{box-sizing:border-box}
@@ -82,7 +82,7 @@ dialog{border:0;border-radius:18px;max-width:92vw;width:520px;padding:0} dialog:
 .media-title{font-weight:900;flex:1}
 .media-note{color:var(--muted);font-size:13px;line-height:1.5;white-space:pre-wrap;margin-top:7px}
 .select{width:100%;border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 12px;color:var(--ink)}
-.filter-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.filter-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
 .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0 12px}
 .stat{border:1px solid var(--line);border-radius:12px;background:#fff;padding:9px 5px;text-align:center}
 .stat b{display:block;font-size:20px;color:var(--teal)}.stat span{font-size:10px;color:var(--muted)}
@@ -91,6 +91,16 @@ dialog{border:0;border-radius:18px;max-width:92vw;width:520px;padding:0} dialog:
  .stats-grid{grid-template-columns:repeat(2,1fr)}
  .filter-row{grid-template-columns:1fr}
 }
+
+
+.rank-picker{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.rank-btn{border:1px solid var(--line);background:#fff;border-radius:12px;padding:11px 0;font-weight:900;font-size:18px;color:var(--muted)}
+.rank-btn.active{background:var(--teal);color:#fff;border-color:var(--teal)}
+.rank-badge{display:inline-grid;place-items:center;min-width:30px;height:30px;padding:0 8px;border-radius:9px;font-weight:1000;color:#fff;background:#647b7d}
+.rank-badge.rank-S{background:#171717}
+.rank-badge.rank-A{background:#2f7d68}
+.rank-badge.rank-B{background:#537aa0}
+.rank-badge.rank-C{background:#9a7c55}
 
 </style>
 
@@ -227,6 +237,15 @@ dialog{border:0;border-radius:18px;max-width:92vw;width:520px;padding:0} dialog:
         </select>
         <input id="mediaTitle" type="text" placeholder="作品名">
         <input id="mediaDate" type="date">
+        <div>
+          <div style="font-size:12px;font-weight:800;color:var(--muted);margin:2px 0 7px">ランク</div>
+          <div id="mediaRank" class="rank-picker">
+            <button type="button" class="rank-btn" data-rank="S">S</button>
+            <button type="button" class="rank-btn" data-rank="A">A</button>
+            <button type="button" class="rank-btn" data-rank="B">B</button>
+            <button type="button" class="rank-btn" data-rank="C">C</button>
+          </div>
+        </div>
         <textarea id="mediaNote" rows="3" placeholder="感想・話数・巻数など（任意）"></textarea>
         <button id="addMedia" class="btn primary">＋ 作品を記録</button>
       </div>
@@ -244,6 +263,13 @@ dialog{border:0;border-radius:18px;max-width:92vw;width:520px;padding:0} dialog:
           <option value="movie">映画</option>
           <option value="manga">漫画</option>
           <option value="book">本</option>
+        </select>
+        <select id="mediaRankFilter" class="select">
+          <option value="all">すべてのランク</option>
+          <option value="S">Sランク</option>
+          <option value="A">Aランク</option>
+          <option value="B">Bランク</option>
+          <option value="C">Cランク</option>
         </select>
       </div>
       <div id="mediaStats" class="stats-grid"></div>
@@ -373,6 +399,7 @@ function combinedChart(){
 function renderTasks(){let m=month(),w=$("#taskList");w.innerHTML="";m.tasks.forEach((t,i)=>{let r=document.createElement("div");r.className="taskitem";r.innerHTML=`<input type="checkbox" ${t.done?"checked":""} data-tc="${i}"><input type="text" value="${(t.text||"").replace(/"/g,"&quot;")}" data-tt="${i}"><button class="btn" data-td="${i}">×</button>`;w.appendChild(r)});$$("[data-tc]").forEach(x=>x.onchange=()=>{m.tasks[+x.dataset.tc].done=x.checked;save()});$$("[data-tt]").forEach(x=>x.oninput=e=>{m.tasks[+x.dataset.tt].text=e.target.value;save()});$$("[data-td]").forEach(x=>x.onclick=()=>{m.tasks.splice(+x.dataset.td,1);save();renderTasks()})}
 
 const MEDIA_LABEL={anime:"アニメ",movie:"映画",manga:"漫画",book:"本"};
+let selectedMediaRank="";
 function esc(s=""){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 
 function renderTaskArchive(){
@@ -396,17 +423,17 @@ function renderMemos(){
 
 function mediaMonthKey(date){let d=new Date(date+"T00:00:00");return `${d.getFullYear()}-${pad(d.getMonth()+1)}`}
 function renderMedia(){
- let monthSel=$("#mediaMonthFilter"),typeSel=$("#mediaTypeFilter"),list=$("#mediaList"),stats=$("#mediaStats");
- if(!monthSel||!typeSel||!list||!stats)return;
+ let monthSel=$("#mediaMonthFilter"),typeSel=$("#mediaTypeFilter"),rankSel=$("#mediaRankFilter"),list=$("#mediaList"),stats=$("#mediaStats");
+ if(!monthSel||!typeSel||!rankSel||!list||!stats)return;
  let prev=monthSel.value||"all";
  let months=[...new Set((state.media||[]).map(x=>x.month).filter(Boolean))].sort().reverse();
  monthSel.innerHTML='<option value="all">すべての月</option>'+months.map(k=>{let [y,m]=k.split("-");return `<option value="${k}">${y}年${Number(m)}月</option>`}).join("");
  if([...monthSel.options].some(o=>o.value===prev))monthSel.value=prev;
- let mf=monthSel.value,tf=typeSel.value;
- let all=state.media||[],filtered=all.filter(x=>(mf==="all"||x.month===mf)&&(tf==="all"||x.type===tf)).sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+ let mf=monthSel.value,tf=typeSel.value,rf=rankSel.value;
+ let all=state.media||[],filtered=all.filter(x=>(mf==="all"||x.month===mf)&&(tf==="all"||x.type===tf)&&(rf==="all"||x.rank===rf)).sort((a,b)=>(b.date||"").localeCompare(a.date||""));
  let counts={anime:0,movie:0,manga:0,book:0};filtered.forEach(x=>counts[x.type]=(counts[x.type]||0)+1);
  stats.innerHTML=Object.keys(counts).map(k=>`<div class="stat"><b>${counts[k]}</b><span>${MEDIA_LABEL[k]}</span></div>`).join("");
- list.innerHTML=filtered.map(x=>`<div class="media-item"><div class="media-meta"><span>${esc(x.date||"")}</span><button class="btn" data-medel="${x.id}">削除</button></div><div class="media-top"><span class="media-type">${MEDIA_LABEL[x.type]||x.type}</span><div class="media-title">${esc(x.title)}</div></div>${x.note?`<div class="media-note">${esc(x.note)}</div>`:""}</div>`).join("")||'<div class="empty">この条件の作品記録はありません。</div>';
+ list.innerHTML=filtered.map(x=>`<div class="media-item"><div class="media-meta"><span>${esc(x.date||"")}</span><button class="btn" data-medel="${x.id}">削除</button></div><div class="media-top"><span class="media-type">${MEDIA_LABEL[x.type]||x.type}</span>${x.rank?`<span class="rank-badge rank-${x.rank}">${x.rank}</span>`:""}<div class="media-title">${esc(x.title)}</div></div>${x.note?`<div class="media-note">${esc(x.note)}</div>`:""}</div>`).join("")||'<div class="empty">この条件の作品記録はありません。</div>';
  $$("[data-medel]").forEach(b=>b.onclick=()=>{state.media=state.media.filter(x=>x.id!==b.dataset.medel);save();renderMedia()});
 }
 
@@ -483,15 +510,22 @@ $("#addMemo").onclick=()=>{
  $("#memoText").value="";save();renderMemos();
 };
 
+
+$$("[data-rank]").forEach(b=>b.onclick=()=>{
+ selectedMediaRank = (selectedMediaRank===b.dataset.rank) ? "" : b.dataset.rank;
+ $$("[data-rank]").forEach(x=>x.classList.toggle("active",x.dataset.rank===selectedMediaRank));
+});
+
 $("#mediaDate").value=new Date().toISOString().slice(0,10);
 $("#addMedia").onclick=()=>{
- let type=$("#mediaType").value,title=$("#mediaTitle").value.trim(),date=$("#mediaDate").value||new Date().toISOString().slice(0,10),note=$("#mediaNote").value.trim();
+ let type=$("#mediaType").value,title=$("#mediaTitle").value.trim(),date=$("#mediaDate").value||new Date().toISOString().slice(0,10),note=$("#mediaNote").value.trim(),rank=selectedMediaRank;
  if(!title)return alert("作品名を入力してください。");
- state.media.push({id:crypto.randomUUID(),type,title,date,month:mediaMonthKey(date),note,created:new Date().toISOString()});
- $("#mediaTitle").value="";$("#mediaNote").value="";save();renderMedia();
+ state.media.push({id:crypto.randomUUID(),type,title,date,month:mediaMonthKey(date),rank,note,created:new Date().toISOString()});
+ $("#mediaTitle").value="";$("#mediaNote").value="";selectedMediaRank="";$$("[data-rank]").forEach(x=>x.classList.remove("active"));save();renderMedia();
 };
 $("#mediaMonthFilter").onchange=renderMedia;
 $("#mediaTypeFilter").onchange=renderMedia;
+$("#mediaRankFilter").onchange=renderMedia;
 
 $("#exportData").onclick=()=>{
  let blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
