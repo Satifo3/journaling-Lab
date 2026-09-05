@@ -1,13 +1,20 @@
-# Journal Lab v0.7
+# Journal Lab v0.8
 
-今回の修正:
-- デイリータスクの習慣チェックを最大6個へ拡張
-- 6個とも同じ行に収まり、横スクロール不要のコンパクト配置
-- Trackerの体調・睡眠グラフを1枚に統合
-- 統合グラフをTrackerの最上段へ移動
-- 「TODAY / 今日の記録」をグラフの下へ移動
-- 内蔵の擬似BGMを完全削除
-- BGMはYouTube URLプレイヤー方式へ一本化
-- つむぎWAVのiPhoneファイル読込・端末保存はそのまま維持
+修正内容
+- デイリータスクの「その日やること」を「予定」に変更
+- 習慣編集の名前を最大4文字まで入力可能に変更
+- 6個の習慣チェックは横一列のまま維持
+- Trackerグラフを時系列が左→右へ進む一般的な表示に変更
+- X軸＝日付
+- 左Y軸＝体調 1〜5（青）
+- 右Y軸＝睡眠時間 0〜10時間（赤）
 
-GitHubへアップロードするのは `index.html` だけでOKです。
+GitHub Pagesでは index.html を既存ファイルと置き換えてください。
+
+
+## v0.9 App Icon
+- iPhoneの「ホーム画面に追加」用 `apple-touch-icon.png` を追加
+- ブラウザ/favicon用 `icon-192.png` を追加
+- `index.html` にアイコン参照コードを組み込み済み
+
+GitHubには `index.html`、`apple-touch-icon.png`、`icon-192.png` の3ファイルを置いてください。

@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#e8f2ef">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>Journal Lab v0.7</title>
+<title>Journal Lab v0.9</title>
 <style>
 :root{--bg:#e8f2ef;--paper:#fbfdfc;--ink:#17383a;--muted:#6f8688;--line:#b6d7d1;--teal:#157f82;--red:#b96969;--blue:#3b6fa7;}
 *{box-sizing:border-box}
@@ -64,6 +64,12 @@ dialog{border:0;border-radius:18px;max-width:92vw;width:520px;padding:0} dialog:
 @media(max-width:560px){.yt-controls{grid-template-columns:1fr 1fr}.yt-controls input{grid-column:1/-1}.tabs{gap:3px;padding:5px}.tab{font-size:10px;padding:10px 1px}}
 
 </style>
+
+<meta name="apple-mobile-web-app-title" content="Journal Lab">
+<meta name="application-name" content="Journal Lab">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+
 </head>
 <body>
 <div class="app">
@@ -85,7 +91,7 @@ dialog{border:0;border-radius:18px;max-width:92vw;width:520px;padding:0} dialog:
   <div class="monthnav"><button id="prev" class="btn">← 前月</button><button id="next" class="btn">次月 →</button></div>
   <div class="card">
     <div class="rowhead"><div><div class="eyebrow">DAILY TASK + HABITS</div><h2>デイリータスク</h2></div><button id="editHabits" class="btn">習慣編集</button></div>
-    <div class="habit-legend"><span>日付</span><span>その日やること</span><div id="habitLabels" class="habit-labels"></div></div>
+    <div class="habit-legend"><span>日付</span><span>予定</span><div id="habitLabels" class="habit-labels"></div></div>
     <div id="dailyRows" class="compact-list"></div>
   </div>
 </section>
@@ -189,7 +195,7 @@ function renderDaily(){
  let m=month(),w=$("#dailyRows");w.innerHTML="";
  for(let d=1;d<=dim();d++){let info=dayInfo(d),k=dk(d);m.daily[k] ||= {text:""};m.habits[k] ||= {};
   let r=document.createElement("div");r.className="dayrow";
-  r.innerHTML=`<div class="daynum ${info.sun?"sun":""}">${d}</div><div class="weekday ${info.sun?"sun":""}">${info.w}</div><input class="daytext" data-dd="${d}" type="text" placeholder="その日やること" value="${(m.daily[k].text||"").replace(/"/g,"&quot;")}"><div class="habit-strip">${state.habits.map((_,i)=>`<button class="habit-mini ${m.habits[k][i]?"on":""}" data-hd="${d}" data-hi="${i}"></button>`).join("")}</div>`;
+  r.innerHTML=`<div class="daynum ${info.sun?"sun":""}">${d}</div><div class="weekday ${info.sun?"sun":""}">${info.w}</div><input class="daytext" data-dd="${d}" type="text" placeholder="予定" value="${(m.daily[k].text||"").replace(/"/g,"&quot;")}"><div class="habit-strip">${state.habits.map((_,i)=>`<button class="habit-mini ${m.habits[k][i]?"on":""}" data-hd="${d}" data-hi="${i}"></button>`).join("")}</div>`;
   w.appendChild(r);
  }
  $$(".daytext").forEach(x=>x.oninput=e=>{month().daily[dk(+x.dataset.dd)].text=e.target.value;save()});
@@ -215,29 +221,51 @@ function renderTracker(){
 }
 function combinedChart(){
  let c=$("#combinedChart"),x=c.getContext("2d"),W=c.width,H=c.height;x.clearRect(0,0,W,H);
- let L=58,R=32,T=52,B=42,w=W-L-R,h=H-T-B,days=dim(),m=month();
+ let L=62,R=38,T=50,B=58,w=W-L-R,h=H-T-B,days=dim(),m=month();
  x.lineWidth=1;x.font="14px sans-serif";
- // horizontal day grid
+
+ // X軸：日付。時間が左→右へ進む
  x.strokeStyle="rgba(80,130,120,.18)";x.fillStyle="#708789";
  [1,5,10,15,20,25,days].filter((v,i,a)=>a.indexOf(v)===i).forEach(d=>{
-   let y=T+(d-1)/(days-1||1)*h;x.beginPath();x.moveTo(L,y);x.lineTo(W-R,y);x.stroke();x.fillText(String(d),14,y+5)
+   let xx=L+(d-1)/(days-1||1)*w;
+   x.beginPath();x.moveTo(xx,T);x.lineTo(xx,H-B);x.stroke();
+   x.fillText(String(d),xx-5,H-28);
  });
- // body-condition scale along top (blue)
- x.fillStyle="#3b6fa7";x.strokeStyle="rgba(59,111,167,.18)";
- for(let v=1;v<=5;v++){let xx=L+(v-1)/4*w;x.beginPath();x.moveTo(xx,T);x.lineTo(xx,H-B);x.stroke();x.fillText(String(v),xx-4,22)}
- x.fillText("体調",L,40);
- // sleep scale along bottom (red)
+ x.fillText("日付 →",W-82,H-10);
+
+ // 左Y軸：体調 1〜5（青）
+ x.fillStyle="#3b6fa7";x.strokeStyle="rgba(59,111,167,.16)";
+ for(let v=1;v<=5;v++){
+   let yy=T+(5-v)/4*h;
+   x.beginPath();x.moveTo(L,yy);x.lineTo(W-R,yy);x.stroke();
+   x.fillText(String(v),24,yy+5);
+ }
+ x.fillText("体調",14,28);
+
+ // 右Y軸：睡眠 0〜10時間（赤）
  x.fillStyle="#b96969";
- for(let v=0;v<=10;v+=2){let xx=L+v/10*w;x.fillText(String(v),xx-4,H-12)}
- x.fillText("睡眠時間(h)",W-120,H-12);
+ for(let v=0;v<=10;v+=2){
+   let yy=T+(10-v)/10*h;
+   x.fillText(String(v),W-R+10,yy+5);
+ }
+ x.fillText("睡眠(h)",W-92,28);
+
  function series(key,min,max,color){
    let pts=[];
-   for(let d=1;d<=days;d++){let v=m.ratings[dk(d)]?.[key];if(v!=null)pts.push({x:L+(v-min)/(max-min)*w,y:T+(d-1)/(days-1||1)*h})}
+   for(let d=1;d<=days;d++){
+     let v=m.ratings[dk(d)]?.[key];
+     if(v!=null) pts.push({
+       x:L+(d-1)/(days-1||1)*w,
+       y:T+(max-v)/(max-min)*h
+     });
+   }
    if(!pts.length)return;
-   x.strokeStyle=color;x.fillStyle=color;x.lineWidth=4;x.beginPath();pts.forEach((p,i)=>i?x.lineTo(p.x,p.y):x.moveTo(p.x,p.y));x.stroke();
+   x.strokeStyle=color;x.fillStyle=color;x.lineWidth=4;
+   x.beginPath();pts.forEach((p,i)=>i?x.lineTo(p.x,p.y):x.moveTo(p.x,p.y));x.stroke();
    pts.forEach(p=>{x.beginPath();x.arc(p.x,p.y,6,0,Math.PI*2);x.fill()});
  }
- series("body",1,5,"#3b6fa7");series("sleep",0,10,"#b96969");
+ series("body",1,5,"#3b6fa7");
+ series("sleep",0,10,"#b96969");
 }
 function renderTasks(){let m=month(),w=$("#taskList");w.innerHTML="";m.tasks.forEach((t,i)=>{let r=document.createElement("div");r.className="taskitem";r.innerHTML=`<input type="checkbox" ${t.done?"checked":""} data-tc="${i}"><input type="text" value="${(t.text||"").replace(/"/g,"&quot;")}" data-tt="${i}"><button class="btn" data-td="${i}">×</button>`;w.appendChild(r)});$$("[data-tc]").forEach(x=>x.onchange=()=>{m.tasks[+x.dataset.tc].done=x.checked;save()});$$("[data-tt]").forEach(x=>x.oninput=e=>{m.tasks[+x.dataset.tt].text=e.target.value;save()});$$("[data-td]").forEach(x=>x.onclick=()=>{m.tasks.splice(+x.dataset.td,1);save();renderTasks()})}
 function setView(v){$$(".tab").forEach(b=>b.classList.toggle("active",b.dataset.v===v));$$(".view").forEach(s=>s.classList.toggle("active",s.id===v));if(v==="tracker")setTimeout(renderTracker,20)}
@@ -285,7 +313,7 @@ $$(".tab").forEach(b=>b.onclick=()=>setView(b.dataset.v));
 $("#goal").oninput=e=>{month().goal=e.target.value;save()};
 $("#prev").onclick=()=>{cur.setMonth(cur.getMonth()-1);render()};$("#next").onclick=()=>{cur.setMonth(cur.getMonth()+1);render()};
 $("#prevDiary").onclick=()=>{cur.setMonth(cur.getMonth()-1);render()};$("#nextDiary").onclick=()=>{cur.setMonth(cur.getMonth()+1);render()};
-$("#editHabits").onclick=()=>{$("#habitEditor").innerHTML=Array.from({length:6},(_,i)=>`<label>枠${i+1}<input type="text" maxlength="2" value="${state.habits[i]||""}" data-he="${i}" placeholder="${i+1}"></label>`).join("");$("#habitDialog").showModal()};
+$("#editHabits").onclick=()=>{$("#habitEditor").innerHTML=Array.from({length:6},(_,i)=>`<label>枠${i+1}<input type="text" maxlength="4" value="${state.habits[i]||""}" data-he="${i}" placeholder="${i+1}"></label>`).join("");$("#habitDialog").showModal()};
 $("#habitSave").onclick=()=>{$$("[data-he]").forEach(x=>state.habits[+x.dataset.he]=x.value.trim());save();render()};
 $("#quick").onclick=()=>{$("#qDate").value=new Date().toISOString().slice(0,10);$("#qText").value="";$("#quickDialog").showModal()};
 $("#qSave").onclick=()=>{let d=$("#qDate").value,t=$("#qText").value.trim();if(!d||!t)return;let [y,m]=d.split("-").map(Number),k=`${y}-${pad(m)}`;state.months[k] ||= {goal:"",journal:{},daily:{},habits:{},ratings:{},tasks:[]};state.months[k].journal[d]=t;cur=new Date(y,m-1,1);save();render()};
