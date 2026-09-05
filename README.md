@@ -1,18 +1,15 @@
-# Journal Labs iPhone版 v0.3
+# Journal Labs v0.4 — GitHub Single File
 
-## v0.3の修正点
-- 「すべて」→「1行日記」
-- 「未転記」→「デイリータスク」
-- 「転記済み」ボタンを削除
-- デイリータスク表示を追加
-- 習慣トラッカーのチェックを小型化
-- 睡眠を 0h〜10h の選択式に変更
-- 体調 / 睡眠グラフを別表示
-- BGMプレビュー再生を追加
-- つむぎボイスのテスト再生をFocus画面へ追加
-- WAVが無い場合はiPhoneの日本語音声で代替
-- safe-area対応を強化
-- `.gitignore` に `LocalStorage.json` を追加
+iPhoneのGitHubだけで更新しやすいように、CSS / JavaScript / UIをすべて `index.html` 1ファイルに統合した版です。
 
-クレジット:
-VOICEVOX:春日部つむぎ
+## アップロードするもの
+`index.html` だけ。
+
+GitHub Pagesを使う場合、リポジトリ直下にこの `index.html` を置けばOKです。
+
+## つむぎボイス
+この版では音声ファイル管理をなくし、iPhoneの日本語読み上げを代替として使います。
+
+本物の「VOICEVOX:春日部つむぎ」のWAVを5本用意できたら、
+そのWAVをBase64で `index.html` 内に埋め込んだ完全1ファイル版へ更新できます。
+そうすれば `assets/voice/` も不要です。
