@@ -1,9 +1,13 @@
-# Journal Lab v0.6 Single File
+# Journal Lab v0.7
 
-- Journal: デイリータスク + 4習慣チェックのみ
-- Diary: 1行日記を独立タブ化
-- Focus: 内蔵BGM + YouTube URL埋め込み再生
-- 指定の焚き火URLを初期値としてセット済み
-- YouTube音源は抽出せず、公式埋め込みプレイヤー方式
-- つむぎWAVはiPhoneのファイルから読込、端末内保存
-- GitHubに必要なのは index.html 1ファイルだけ
+今回の修正:
+- デイリータスクの習慣チェックを最大6個へ拡張
+- 6個とも同じ行に収まり、横スクロール不要のコンパクト配置
+- Trackerの体調・睡眠グラフを1枚に統合
+- 統合グラフをTrackerの最上段へ移動
+- 「TODAY / 今日の記録」をグラフの下へ移動
+- 内蔵の擬似BGMを完全削除
+- BGMはYouTube URLプレイヤー方式へ一本化
+- つむぎWAVのiPhoneファイル読込・端末保存はそのまま維持
+
+GitHubへアップロードするのは `index.html` だけでOKです。
