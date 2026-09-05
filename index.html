@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f6f73" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Journal Labs" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <title>Journal Labs</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="title-wrap">
+        <div class="eyebrow">LOCAL JOURNAL</div>
+        <h1 id="monthTitle">9月</h1>
+      </div>
+      <div class="goal-wrap">
+        <label for="monthGoal">今月の目標</label>
+        <input id="monthGoal" type="text" placeholder="例：仕事に集中 / コンテ" />
+      </div>
+    </header>
+
+    <nav class="tabs" aria-label="メインタブ">
+      <button class="tab active" data-view="journal">Journal</button>
+      <button class="tab" data-view="tracker">Tracker</button>
+      <button class="tab" data-view="focus">Focus</button>
+      <button class="tab" data-view="tasks">Tasks</button>
+      <button class="tab" data-view="settings">設定</button>
+    </nav>
+
+    <main>
+      <section id="view-journal" class="view active">
+        <div class="toolbar">
+          <div class="segmented" id="journalMode">
+            <button class="seg active" data-mode="journal">1行日記</button>
+            <button class="seg" data-mode="daily">デイリータスク</button>
+          </div>
+          <div class="month-nav">
+            <button class="ghost-btn" id="prevMonth">← 前月</button>
+            <button class="ghost-btn" id="nextMonth">次月 →</button>
+          </div>
+        </div>
+
+        <div class="journal-layout">
+          <div class="stack">
+            <div class="paper-card journal-card">
+              <div class="section-title-row">
+                <div>
+                  <div class="eyebrow">MONTHLY LOG</div>
+                  <h2 id="journalPanelTitle">月間ジャーナル</h2>
+                </div>
+                <button id="quickAdd" class="primary-btn">＋ クイック記録</button>
+              </div>
+              <div id="journalList" class="journal-list"></div>
+              <div id="dailyList" class="daily-list hidden"></div>
+            </div>
+          </div>
+
+          <aside class="paper-card habit-card">
+            <div class="section-title-row">
+              <div>
+                <div class="eyebrow">HABIT TRACKER</div>
+                <h2>習慣トラッカー</h2>
+              </div>
+              <button id="editHabits" class="ghost-btn">編集</button>
+            </div>
+            <p class="mini-note">1タップでサクッとチェック。スクロール量を減らしたコンパクト表示です。</p>
+            <div id="habitTracker"></div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="view-tracker" class="view">
+        <div class="tracker-grid">
+          <div class="paper-card">
+            <div class="section-title-row">
+              <div>
+                <div class="eyebrow">CONDITION</div>
+                <h2>体調と睡眠</h2>
+              </div>
+            </div>
+
+            <div class="mini-chart-block">
+              <div class="mini-chart-title"><span class="blue-dot"></span> 体調（1〜5）</div>
+              <canvas id="bodyChart" width="900" height="300"></canvas>
+            </div>
+
+            <div class="mini-chart-block">
+              <div class="mini-chart-title"><span class="red-dot"></span> 睡眠時間（0〜10時間）</div>
+              <canvas id="sleepChart" width="900" height="300"></canvas>
+            </div>
+          </div>
+
+          <div class="paper-card">
+            <div class="section-title-row">
+              <div>
+                <div class="eyebrow">TODAY</div>
+                <h2>今日の記録</h2>
+              </div>
+              <span id="todayLabel" class="muted"></span>
+            </div>
+
+            <div class="rating-block">
+              <div class="rating-title">体調</div>
+              <div class="rating-row" id="bodyRating"></div>
+            </div>
+
+            <div class="rating-block">
+              <div class="rating-title">睡眠時間</div>
+              <div class="sleep-help muted">0〜10時間をそのまま選ぶ方式に変更</div>
+              <div class="sleep-row" id="sleepHours"></div>
+            </div>
+          </div>
+
+          <div class="paper-card">
+            <div class="eyebrow">SUMMARY</div>
+            <h2>今月の傾向</h2>
+            <p id="trendText" class="trend-text">記録が増えると、ここに今月の平均が表示されます。</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-focus" class="view">
+        <div class="focus-grid">
+          <div class="paper-card timer-card">
+            <div class="section-title-row">
+              <div>
+                <div class="eyebrow">POMODORO</div>
+                <h2>集中タイマー</h2>
+              </div>
+              <div class="segmented" id="timerPresets">
+                <button class="seg active" data-minutes="25">25分</button>
+                <button class="seg" data-minutes="50">50分</button>
+              </div>
+            </div>
+
+            <div class="timer-ring" id="timerRing">
+              <div id="timerDisplay" class="timer-display">25:00</div>
+              <div class="timer-caption">集中する時間を、静かにつくる。</div>
+            </div>
+
+            <div class="timer-actions">
+              <button id="resetTimer" class="ghost-btn">リセット</button>
+              <button id="startTimer" class="primary-btn big">スタート</button>
+              <button id="pauseTimer" class="ghost-btn">一時停止</button>
+            </div>
+          </div>
+
+          <div class="paper-card">
+            <div class="section-title-row">
+              <div>
+                <div class="eyebrow">AMBIENT SOUND</div>
+                <h2>BGM</h2>
+              </div>
+              <button id="toggleBgmPreview" class="ghost-btn">再生 / 停止</button>
+            </div>
+            <div class="sound-grid" id="soundGrid">
+              <button class="sound-btn active" data-sound="river">川のせせらぎ</button>
+              <button class="sound-btn" data-sound="fire">焚き火</button>
+              <button class="sound-btn" data-sound="ocean">海の波</button>
+              <button class="sound-btn" data-sound="rain">雨音</button>
+              <button class="sound-btn" data-sound="off">無音</button>
+            </div>
+            <div id="bgmStatus" class="status-chip">BGM待機中</div>
+            <label class="volume-row">
+              <span>音量</span>
+              <input id="volumeControl" type="range" min="0" max="100" value="35" />
+              <span id="volumeValue">35%</span>
+            </label>
+          </div>
+
+          <div class="paper-card">
+            <div class="section-title-row">
+              <div>
+                <div class="eyebrow">TSUMUGI VOICE</div>
+                <h2>つむぎボイス</h2>
+              </div>
+              <button id="voiceTest" class="ghost-btn">テスト再生</button>
+            </div>
+            <p class="muted">本物の春日部つむぎWAVがあればそれを優先再生。無い場合はiPhoneの日本語音声で代替読み上げします。</p>
+            <div class="voice-actions-grid">
+              <button class="voice-line-btn" data-line="start25">開始25分</button>
+              <button class="voice-line-btn" data-line="mid5">残り5分</button>
+              <button class="voice-line-btn" data-line="finish25">終了25分</button>
+              <button class="voice-line-btn" data-line="finish50">終了50分</button>
+            </div>
+            <div id="voiceStatus" class="status-chip">ボイス確認中…</div>
+          </div>
+
+          <div class="paper-card">
+            <div class="eyebrow">AFTER SESSION</div>
+            <h2>終わったら一言残す</h2>
+            <textarea id="focusNote" rows="4" placeholder="例：集中できた / 修正方針が決まった / 少し疲れた"></textarea>
+            <button id="saveFocusNote" class="primary-btn">今日の1行日記に追加</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-tasks" class="view">
+        <div class="paper-card">
+          <div class="section-title-row">
+            <div>
+              <div class="eyebrow">MONTHLY TASKS</div>
+              <h2>今月のタスク</h2>
+            </div>
+            <button id="addTask" class="primary-btn">＋ タスク追加</button>
+          </div>
+          <div id="taskList" class="task-list"></div>
+        </div>
+      </section>
+
+      <section id="view-settings" class="view">
+        <div class="settings-grid">
+          <div class="paper-card">
+            <div class="eyebrow">DATA</div>
+            <h2>データ管理</h2>
+            <p class="muted">データはこのブラウザの localStorage に保存されます。サーバー送信はしません。</p>
+            <div class="settings-actions">
+              <button id="exportData" class="primary-btn">JSONを書き出す</button>
+              <label class="ghost-btn file-label">
+                JSONを読み込む
+                <input id="importData" type="file" accept="application/json" hidden />
+              </label>
+              <button id="clearData" class="danger-btn">全データを削除</button>
+            </div>
+          </div>
+
+          <div class="paper-card">
+            <div class="eyebrow">VOICE</div>
+            <h2>つむぎボイス設定</h2>
+            <label class="toggle-row">
+              <input id="voiceEnabled" type="checkbox" checked />
+              <span>ボイス全体を有効にする</span>
+            </label>
+            <div class="voice-settings-grid">
+              <label class="check-row"><input id="voiceStartEnabled" type="checkbox" checked />開始時</label>
+              <label class="check-row"><input id="voiceMidEnabled" type="checkbox" checked />残り5分</label>
+              <label class="check-row"><input id="voiceFinishEnabled" type="checkbox" checked />終了時</label>
+            </div>
+            <label class="volume-row voice-volume-row">
+              <span>音声音量</span>
+              <input id="voiceVolume" type="range" min="0" max="100" value="80" />
+              <span id="voiceVolumeValue">80%</span>
+            </label>
+            <p class="credit">VOICEVOX:春日部つむぎ（WAV差し替え時のクレジット）</p>
+          </div>
+
+          <div class="paper-card">
+            <div class="eyebrow">LOCAL FIRST</div>
+            <h2>この版について</h2>
+            <p>iPhoneだけでも触りやすいように、上部の安全余白・小さめの習慣チェック・BGMプレビュー・音声テストを強化しました。</p>
+            <p class="muted">LocalStorage.json は .gitignore 済みなので、個人記録がそのままGitHubへ混ざりにくい構成です。</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="quickDialog">
+    <form method="dialog" class="dialog-card" id="quickForm">
+      <h3>クイック記録</h3>
+      <label>日付
+        <input id="quickDate" type="date" required />
+      </label>
+      <label>内容
+        <textarea id="quickText" rows="5" placeholder="今思いついたことを、そのまま残す"></textarea>
+      </label>
+      <div class="dialog-actions">
+        <button value="cancel" class="ghost-btn">キャンセル</button>
+        <button id="saveQuick" value="default" class="primary-btn">保存</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="habitDialog">
+    <form method="dialog" class="dialog-card wide" id="habitForm">
+      <h3>習慣トラッカー編集</h3>
+      <p class="muted">毎日やる項目名を自由に変更できます。略称は小さく表示します。</p>
+      <div id="habitEditor"></div>
+      <button type="button" id="addHabitRow" class="ghost-btn">＋ 項目追加</button>
+      <div class="dialog-actions">
+        <button value="cancel" class="ghost-btn">キャンセル</button>
+        <button id="saveHabits" value="default" class="primary-btn">保存</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+  <script>
+    if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+      window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));
+    }
+  </script>
+</body>
+</html>

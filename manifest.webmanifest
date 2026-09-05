@@ -1,0 +1,10 @@
+{
+  "name": "Journal Labs",
+  "short_name": "Journal Labs",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#e8f2ef",
+  "theme_color": "#11797d",
+  "description": "ローカルファーストのジャーナリング・習慣トラッカー・ポモドーロアプリ"
+}
