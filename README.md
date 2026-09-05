@@ -1,20 +1,15 @@
-# Journal Lab v0.8
+# Journal Lab v1.0 Complete
 
-修正内容
-- デイリータスクの「その日やること」を「予定」に変更
-- 習慣編集の名前を最大4文字まで入力可能に変更
-- 6個の習慣チェックは横一列のまま維持
-- Trackerグラフを時系列が左→右へ進む一般的な表示に変更
-- X軸＝日付
-- 左Y軸＝体調 1〜5（青）
-- 右Y軸＝睡眠時間 0〜10時間（赤）
+追加機能:
+- 完了タスク履歴：過去の月に完了した Tasks を月別に見返せる
+- メモ：日時付きで自由メモを保存・削除
+- 作品記録：アニメ / 映画 / 漫画 / 本を日付・感想付きで保存
+- 作品ログは「月」「種類」で絞り込み可能
+- 作品カテゴリごとの件数表示
+- JSONバックアップ / 復元
+- 既存の Journal / Diary / Tracker / Focus / Tasks / つむぎWAV / YouTube BGM / アイコンは維持
 
-GitHub Pagesでは index.html を既存ファイルと置き換えてください。
-
-
-## v0.9 App Icon
-- iPhoneの「ホーム画面に追加」用 `apple-touch-icon.png` を追加
-- ブラウザ/favicon用 `icon-192.png` を追加
-- `index.html` にアイコン参照コードを組み込み済み
-
-GitHubには `index.html`、`apple-touch-icon.png`、`icon-192.png` の3ファイルを置いてください。
+GitHubに置くファイル:
+- index.html
+- apple-touch-icon.png
+- icon-192.png

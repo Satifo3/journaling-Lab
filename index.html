@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#e8f2ef">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>Journal Lab v0.9</title>
+<title>Journal Lab v1.0</title>
 <style>
 :root{--bg:#e8f2ef;--paper:#fbfdfc;--ink:#17383a;--muted:#6f8688;--line:#b6d7d1;--teal:#157f82;--red:#b96969;--blue:#3b6fa7;}
 *{box-sizing:border-box}
@@ -19,8 +19,8 @@ h1{font-size:42px;line-height:1;margin:0} h2{margin:2px 0 0;font-size:22px}
 .eyebrow{font-size:11px;letter-spacing:.16em;color:var(--teal);font-weight:800}
 .goal{flex:1} .goal label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:5px}
 input[type=text],input[type=date],textarea{width:100%;border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 12px;color:var(--ink);outline:none}
-.tabs{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;padding:6px;background:rgba(251,253,252,.92);border:1px solid var(--line);border-radius:18px;position:sticky;top:8px;z-index:8}
-.tab{border:0;background:transparent;border-radius:12px;padding:11px 3px;font-weight:800;color:var(--muted);font-size:11px} .tab.active{background:var(--teal);color:white}
+.tabs{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;padding:6px;background:rgba(251,253,252,.92);border:1px solid var(--line);border-radius:18px;position:sticky;top:8px;z-index:8}
+.tab{border:0;background:transparent;border-radius:12px;padding:11px 2px;font-weight:800;color:var(--muted);font-size:10px} .tab.active{background:var(--teal);color:white}
 .view{display:none;padding-top:14px} .view.active{display:block}
 .card{background:rgba(251,253,252,.96);border:1px solid var(--line);border-radius:20px;padding:14px;margin-bottom:14px;box-shadow:0 10px 30px rgba(20,70,68,.07)}
 .rowhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
@@ -63,6 +63,35 @@ dialog{border:0;border-radius:18px;max-width:92vw;width:520px;padding:0} dialog:
 .youtube-wrap iframe{width:100%;height:100%;border:0;display:block}
 @media(max-width:560px){.yt-controls{grid-template-columns:1fr 1fr}.yt-controls input{grid-column:1/-1}.tabs{gap:3px;padding:5px}.tab{font-size:10px;padding:10px 1px}}
 
+
+.record-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}
+.record-tabs .btn.active{background:var(--teal);color:#fff;border-color:var(--teal)}
+.record-pane{display:none}.record-pane.active{display:block}
+.archive-month{margin-bottom:12px;border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden}
+.archive-month summary{cursor:pointer;padding:12px 14px;font-weight:900;color:var(--ink);display:flex;justify-content:space-between;gap:10px}
+.archive-body{padding:0 14px 12px}
+.archive-task{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid rgba(182,215,209,.65)}
+.archive-task::before{content:"✓";display:grid;place-items:center;width:22px;height:22px;border-radius:6px;background:var(--teal);color:#fff;font-size:12px;font-weight:900;flex:0 0 auto}
+.empty{padding:18px 8px;color:var(--muted);text-align:center}
+.memo-form,.media-form{display:grid;gap:8px}
+.memo-item,.media-item{border:1px solid var(--line);background:#fff;border-radius:14px;padding:11px;margin-top:8px}
+.memo-meta,.media-meta{display:flex;gap:8px;align-items:center;justify-content:space-between;color:var(--muted);font-size:11px;margin-bottom:6px}
+.memo-text{white-space:pre-wrap;line-height:1.55}
+.media-top{display:flex;gap:8px;align-items:center}
+.media-type{display:inline-flex;padding:4px 8px;border-radius:999px;background:#e4f2ef;color:var(--teal);font-size:11px;font-weight:900}
+.media-title{font-weight:900;flex:1}
+.media-note{color:var(--muted);font-size:13px;line-height:1.5;white-space:pre-wrap;margin-top:7px}
+.select{width:100%;border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 12px;color:var(--ink)}
+.filter-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0 12px}
+.stat{border:1px solid var(--line);border-radius:12px;background:#fff;padding:9px 5px;text-align:center}
+.stat b{display:block;font-size:20px;color:var(--teal)}.stat span{font-size:10px;color:var(--muted)}
+.export-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+@media(max-width:430px){
+ .stats-grid{grid-template-columns:repeat(2,1fr)}
+ .filter-row{grid-template-columns:1fr}
+}
+
 </style>
 
 <meta name="apple-mobile-web-app-title" content="Journal Lab">
@@ -84,6 +113,7 @@ dialog{border:0;border-radius:18px;max-width:92vw;width:520px;padding:0} dialog:
   <button class="tab" data-v="tracker">Tracker</button>
   <button class="tab" data-v="focus">Focus</button>
   <button class="tab" data-v="tasks">Tasks</button>
+  <button class="tab" data-v="records">記録</button>
   <button class="tab" data-v="settings">設定</button>
 </nav>
 
@@ -155,8 +185,75 @@ dialog{border:0;border-radius:18px;max-width:92vw;width:520px;padding:0} dialog:
 
 <section id="tasks" class="view"><div class="card"><div class="rowhead"><div><div class="eyebrow">MONTHLY TASKS</div><h2>今月のタスク</h2></div><button id="addTask" class="btn primary">＋追加</button></div><div id="taskList"></div></div></section>
 
+
+<section id="records" class="view">
+  <div class="record-tabs">
+    <button class="btn active" data-record="archive">実績</button>
+    <button class="btn" data-record="memo">メモ</button>
+    <button class="btn" data-record="media">作品記録</button>
+  </div>
+
+  <div id="record-archive" class="record-pane active">
+    <div class="card">
+      <div class="eyebrow">TASK HISTORY</div>
+      <h2>完了タスク履歴</h2>
+      <p style="color:var(--muted);line-height:1.5">Tasksで完了チェックした内容を月ごとに保存。別の月に移ってもここから見返せます。</p>
+      <div id="taskArchive"></div>
+    </div>
+  </div>
+
+  <div id="record-memo" class="record-pane">
+    <div class="card">
+      <div class="eyebrow">MEMO</div>
+      <h2>メモ</h2>
+      <div class="memo-form">
+        <textarea id="memoText" rows="4" placeholder="思いついたこと、後で確認したいことを自由にメモ"></textarea>
+        <button id="addMemo" class="btn primary">＋ メモを保存</button>
+      </div>
+      <div id="memoList"></div>
+    </div>
+  </div>
+
+  <div id="record-media" class="record-pane">
+    <div class="card">
+      <div class="eyebrow">WATCH / READ LOG</div>
+      <h2>アニメ・映画・漫画・本</h2>
+      <div class="media-form">
+        <select id="mediaType" class="select">
+          <option value="anime">アニメ</option>
+          <option value="movie">映画</option>
+          <option value="manga">漫画</option>
+          <option value="book">本</option>
+        </select>
+        <input id="mediaTitle" type="text" placeholder="作品名">
+        <input id="mediaDate" type="date">
+        <textarea id="mediaNote" rows="3" placeholder="感想・話数・巻数など（任意）"></textarea>
+        <button id="addMedia" class="btn primary">＋ 作品を記録</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="rowhead">
+        <div><div class="eyebrow">LIBRARY</div><h2>作品ログ</h2></div>
+      </div>
+      <div class="filter-row">
+        <select id="mediaMonthFilter" class="select"><option value="all">すべての月</option></select>
+        <select id="mediaTypeFilter" class="select">
+          <option value="all">すべての種類</option>
+          <option value="anime">アニメ</option>
+          <option value="movie">映画</option>
+          <option value="manga">漫画</option>
+          <option value="book">本</option>
+        </select>
+      </div>
+      <div id="mediaStats" class="stats-grid"></div>
+      <div id="mediaList"></div>
+    </div>
+  </div>
+</section>
+
 <section id="settings" class="view settings">
-  <div class="card"><div class="eyebrow">DATA</div><h2>データ管理</h2><p>ジャーナル・設定・読み込んだWAVはこのiPhone内に保存します。GitHubには日記本文やWAVを送信しません。</p><button id="clearData" class="btn">記録を初期化</button></div>
+  <div class="card"><div class="eyebrow">DATA</div><h2>データ管理</h2><p>ジャーナル・メモ・作品記録・設定はこのiPhone内に保存します。GitHubには個人記録を送信しません。</p><div class="export-row"><button id="exportData" class="btn primary">JSONバックアップ</button><label class="btn filebtn">JSON復元<input id="importData" type="file" accept="application/json,.json"></label><button id="clearData" class="btn">記録を初期化</button></div></div>
   <div class="card"><div class="eyebrow">VOICE CREDIT</div><h2>クレジット</h2><p>VOICEVOXの春日部つむぎ音声を登録して使う場合：<strong>VOICEVOX:春日部つむぎ</strong></p></div>
 </section>
 </div>
@@ -176,19 +273,25 @@ const KEY="journal-lab-v06";
 let state=JSON.parse(localStorage.getItem(KEY)||"null")||{months:{},habits:["S","ア","A","B","",""],youtubeURL:"https://youtu.be/soJ4uc1mgKM?si=h-uqz3bM2RozKZJ7"};
 state.habits ||= ["S","ア","A","B","",""]; while(state.habits.length<6) state.habits.push(""); if(state.habits.length>6) state.habits=state.habits.slice(0,6);
 state.youtubeURL ||= "https://youtu.be/soJ4uc1mgKM?si=h-uqz3bM2RozKZJ7";
+state.memos ||= [];
+state.media ||= [];
 let cur=new Date();cur.setDate(1);
 let total=1500,left=1500,tInt=null,midDone=false;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const pad=n=>String(n).padStart(2,"0");
 const mk=()=>`${cur.getFullYear()}-${pad(cur.getMonth()+1)}`;
-function month(){let k=mk();state.months[k] ||= {goal:"",journal:{},daily:{},habits:{},ratings:{},tasks:[]};return state.months[k]}
+function month(){
+ let k=mk();state.months[k] ||= {goal:"",journal:{},daily:{},habits:{},ratings:{},tasks:[]};
+ let m=state.months[k];m.goal ||= "";m.journal ||= {};m.daily ||= {};m.habits ||= {};m.ratings ||= {};m.tasks ||= [];
+ return m
+}
 function save(){localStorage.setItem(KEY,JSON.stringify(state))}
 function dk(d){return `${mk()}-${pad(d)}`}
 function dim(){return new Date(cur.getFullYear(),cur.getMonth()+1,0).getDate()}
 function dayInfo(d){let x=new Date(cur.getFullYear(),cur.getMonth(),d);return {w:["日","月","火","水","木","金","土"][x.getDay()],sun:x.getDay()===0}}
 function render(){
  $("#monthTitle").textContent=`${cur.getMonth()+1}月`; $("#goal").value=month().goal||"";
- renderDaily();renderJournal();renderTracker();renderTasks();renderHabitLabels();
+ renderDaily();renderJournal();renderTracker();renderTasks();renderHabitLabels();renderTaskArchive();renderMemos();renderMedia();
 }
 function renderHabitLabels(){$("#habitLabels").innerHTML=state.habits.map(x=>`<span>${x}</span>`).join("")}
 function renderDaily(){
@@ -268,7 +371,51 @@ function combinedChart(){
  series("sleep",0,10,"#b96969");
 }
 function renderTasks(){let m=month(),w=$("#taskList");w.innerHTML="";m.tasks.forEach((t,i)=>{let r=document.createElement("div");r.className="taskitem";r.innerHTML=`<input type="checkbox" ${t.done?"checked":""} data-tc="${i}"><input type="text" value="${(t.text||"").replace(/"/g,"&quot;")}" data-tt="${i}"><button class="btn" data-td="${i}">×</button>`;w.appendChild(r)});$$("[data-tc]").forEach(x=>x.onchange=()=>{m.tasks[+x.dataset.tc].done=x.checked;save()});$$("[data-tt]").forEach(x=>x.oninput=e=>{m.tasks[+x.dataset.tt].text=e.target.value;save()});$$("[data-td]").forEach(x=>x.onclick=()=>{m.tasks.splice(+x.dataset.td,1);save();renderTasks()})}
-function setView(v){$$(".tab").forEach(b=>b.classList.toggle("active",b.dataset.v===v));$$(".view").forEach(s=>s.classList.toggle("active",s.id===v));if(v==="tracker")setTimeout(renderTracker,20)}
+
+const MEDIA_LABEL={anime:"アニメ",movie:"映画",manga:"漫画",book:"本"};
+function esc(s=""){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+
+function renderTaskArchive(){
+ let w=$("#taskArchive");if(!w)return;
+ let keys=Object.keys(state.months||{}).sort().reverse(),chunks=[];
+ keys.forEach(k=>{
+   let m=state.months[k]||{},done=(m.tasks||[]).filter(t=>t&&t.done&&String(t.text||"").trim());
+   if(!done.length)return;
+   let [y,mo]=k.split("-");
+   chunks.push(`<details class="archive-month" open><summary><span>${y}年${Number(mo)}月</span><span>${done.length}件</span></summary><div class="archive-body">${done.map(t=>`<div class="archive-task">${esc(t.text)}</div>`).join("")}</div></details>`);
+ });
+ w.innerHTML=chunks.join("")||'<div class="empty">完了した月間タスクはまだありません。</div>';
+}
+
+function renderMemos(){
+ let w=$("#memoList");if(!w)return;
+ let arr=[...(state.memos||[])].sort((a,b)=>(b.created||"").localeCompare(a.created||""));
+ w.innerHTML=arr.map(m=>`<div class="memo-item"><div class="memo-meta"><span>${new Date(m.created).toLocaleString("ja-JP",{year:"numeric",month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"})}</span><button class="btn" data-mdel="${m.id}">削除</button></div><div class="memo-text">${esc(m.text)}</div></div>`).join("")||'<div class="empty">メモはまだありません。</div>';
+ $$("[data-mdel]").forEach(b=>b.onclick=()=>{state.memos=state.memos.filter(m=>m.id!==b.dataset.mdel);save();renderMemos()});
+}
+
+function mediaMonthKey(date){let d=new Date(date+"T00:00:00");return `${d.getFullYear()}-${pad(d.getMonth()+1)}`}
+function renderMedia(){
+ let monthSel=$("#mediaMonthFilter"),typeSel=$("#mediaTypeFilter"),list=$("#mediaList"),stats=$("#mediaStats");
+ if(!monthSel||!typeSel||!list||!stats)return;
+ let prev=monthSel.value||"all";
+ let months=[...new Set((state.media||[]).map(x=>x.month).filter(Boolean))].sort().reverse();
+ monthSel.innerHTML='<option value="all">すべての月</option>'+months.map(k=>{let [y,m]=k.split("-");return `<option value="${k}">${y}年${Number(m)}月</option>`}).join("");
+ if([...monthSel.options].some(o=>o.value===prev))monthSel.value=prev;
+ let mf=monthSel.value,tf=typeSel.value;
+ let all=state.media||[],filtered=all.filter(x=>(mf==="all"||x.month===mf)&&(tf==="all"||x.type===tf)).sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+ let counts={anime:0,movie:0,manga:0,book:0};filtered.forEach(x=>counts[x.type]=(counts[x.type]||0)+1);
+ stats.innerHTML=Object.keys(counts).map(k=>`<div class="stat"><b>${counts[k]}</b><span>${MEDIA_LABEL[k]}</span></div>`).join("");
+ list.innerHTML=filtered.map(x=>`<div class="media-item"><div class="media-meta"><span>${esc(x.date||"")}</span><button class="btn" data-medel="${x.id}">削除</button></div><div class="media-top"><span class="media-type">${MEDIA_LABEL[x.type]||x.type}</span><div class="media-title">${esc(x.title)}</div></div>${x.note?`<div class="media-note">${esc(x.note)}</div>`:""}</div>`).join("")||'<div class="empty">この条件の作品記録はありません。</div>';
+ $$("[data-medel]").forEach(b=>b.onclick=()=>{state.media=state.media.filter(x=>x.id!==b.dataset.medel);save();renderMedia()});
+}
+
+function setView(v){
+ $$(".tab").forEach(b=>b.classList.toggle("active",b.dataset.v===v));
+ $$(".view").forEach(s=>s.classList.toggle("active",s.id===v));
+ if(v==="tracker")setTimeout(renderTracker,20);
+ if(v==="records"){renderTaskArchive();renderMemos();renderMedia()}
+}
 
 function updateTimer(){$("#timer").textContent=`${pad(Math.floor(left/60))}:${pad(left%60)}`}
 function startTimer(){if(tInt)return;if(left===total)playVoice(total===3000?"start50":"start25");midDone=false;tInt=setInterval(()=>{left--;updateTimer();if(left===300&&!midDone){midDone=true;playVoice("mid5")}if(left<=0){clearInterval(tInt);tInt=null;playVoice(total===3000?"finish50":"finish25")}},1000)}
@@ -321,6 +468,44 @@ $("#addTask").onclick=()=>{month().tasks.push({text:"新しいタスク",done:fa
 $$(".preset").forEach(b=>b.onclick=()=>{if(tInt)return;total=+b.dataset.min*60;left=total;updateTimer()});
 $("#start").onclick=startTimer;$("#pause").onclick=pauseTimer;$("#reset").onclick=resetTimer;
 $("#clearData").onclick=()=>{if(confirm("記録を初期化しますか？")){localStorage.removeItem(KEY);location.reload()}};
+
+$$("[data-record]").forEach(b=>b.onclick=()=>{
+ $$("[data-record]").forEach(x=>x.classList.toggle("active",x===b));
+ $$(".record-pane").forEach(p=>p.classList.toggle("active",p.id===`record-${b.dataset.record}`));
+ if(b.dataset.record==="archive")renderTaskArchive();
+ if(b.dataset.record==="memo")renderMemos();
+ if(b.dataset.record==="media")renderMedia();
+});
+
+$("#addMemo").onclick=()=>{
+ let text=$("#memoText").value.trim();if(!text)return;
+ state.memos.push({id:crypto.randomUUID(),text,created:new Date().toISOString()});
+ $("#memoText").value="";save();renderMemos();
+};
+
+$("#mediaDate").value=new Date().toISOString().slice(0,10);
+$("#addMedia").onclick=()=>{
+ let type=$("#mediaType").value,title=$("#mediaTitle").value.trim(),date=$("#mediaDate").value||new Date().toISOString().slice(0,10),note=$("#mediaNote").value.trim();
+ if(!title)return alert("作品名を入力してください。");
+ state.media.push({id:crypto.randomUUID(),type,title,date,month:mediaMonthKey(date),note,created:new Date().toISOString()});
+ $("#mediaTitle").value="";$("#mediaNote").value="";save();renderMedia();
+};
+$("#mediaMonthFilter").onchange=renderMedia;
+$("#mediaTypeFilter").onchange=renderMedia;
+
+$("#exportData").onclick=()=>{
+ let blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+ let a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`journal-lab-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);
+};
+$("#importData").onchange=async e=>{
+ let f=e.target.files?.[0];if(!f)return;
+ try{
+   let d=JSON.parse(await f.text());
+   if(!d||typeof d!=="object")throw new Error();
+   localStorage.setItem(KEY,JSON.stringify(d));location.reload();
+ }catch(err){alert("バックアップJSONを読み込めませんでした。")}
+};
+
 render();renderVoice();updateTimer();
 </script>
 </body>
