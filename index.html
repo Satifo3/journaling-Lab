@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#e8f2ef">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>Journal Lab v1.1</title>
+<title>Journal Lab v1.2</title>
 <style>
 :root{--bg:#e8f2ef;--paper:#fbfdfc;--ink:#17383a;--muted:#6f8688;--line:#b6d7d1;--teal:#157f82;--red:#b96969;--blue:#3b6fa7;}
 *{box-sizing:border-box}
@@ -64,7 +64,7 @@ dialog{border:0;border-radius:18px;max-width:92vw;width:520px;padding:0} dialog:
 @media(max-width:560px){.yt-controls{grid-template-columns:1fr 1fr}.yt-controls input{grid-column:1/-1}.tabs{gap:3px;padding:5px}.tab{font-size:10px;padding:10px 1px}}
 
 
-.record-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}
+.record-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}
 .record-tabs .btn.active{background:var(--teal);color:#fff;border-color:var(--teal)}
 .record-pane{display:none}.record-pane.active{display:block}
 .archive-month{margin-bottom:12px;border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden}
@@ -101,6 +101,22 @@ dialog{border:0;border-radius:18px;max-width:92vw;width:520px;padding:0} dialog:
 .rank-badge.rank-A{background:#2f7d68}
 .rank-badge.rank-B{background:#537aa0}
 .rank-badge.rank-C{background:#9a7c55}
+
+
+.meal-form{display:grid;gap:10px}
+.meal-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.meal-entry{border:1px solid var(--line);background:#fff;border-radius:14px;padding:12px;margin-top:9px}
+.meal-entry-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.meal-date{font-weight:900;color:var(--ink)}
+.meal-row{display:grid;grid-template-columns:56px 1fr;gap:8px;padding:5px 0;border-top:1px solid rgba(182,215,209,.55)}
+.meal-row:first-of-type{border-top:0}
+.meal-label{font-weight:900;color:var(--teal);font-size:12px}
+.meal-text{line-height:1.45}
+.meal-note{margin-top:7px;color:var(--muted);font-size:12px;white-space:pre-wrap}
+@media(max-width:430px){
+ .record-tabs{grid-template-columns:repeat(2,1fr)}
+ .meal-grid{grid-template-columns:1fr}
+}
 
 </style>
 
@@ -201,6 +217,7 @@ dialog{border:0;border-radius:18px;max-width:92vw;width:520px;padding:0} dialog:
     <button class="btn active" data-record="archive">実績</button>
     <button class="btn" data-record="memo">メモ</button>
     <button class="btn" data-record="media">作品記録</button>
+    <button class="btn" data-record="meal">今日の食事</button>
   </div>
 
   <div id="record-archive" class="record-pane active">
@@ -278,6 +295,32 @@ dialog{border:0;border-radius:18px;max-width:92vw;width:520px;padding:0} dialog:
   </div>
 </section>
 
+
+  <div id="record-meal" class="record-pane">
+    <div class="card">
+      <div class="eyebrow">TODAY'S MEAL</div>
+      <h2>今日の食事</h2>
+      <p style="color:var(--muted);line-height:1.5">朝・昼・夜・間食をその日の記録として残せます。過去の日付も選択できます。</p>
+      <div class="meal-form">
+        <input id="mealDate" type="date">
+        <div class="meal-grid">
+          <input id="mealBreakfast" type="text" placeholder="朝食">
+          <input id="mealLunch" type="text" placeholder="昼食">
+          <input id="mealDinner" type="text" placeholder="夕食">
+          <input id="mealSnack" type="text" placeholder="間食・飲み物">
+        </div>
+        <textarea id="mealNote" rows="3" placeholder="メモ（外食、店名、感想など・任意）"></textarea>
+        <button id="saveMeal" class="btn primary">今日の食事を保存</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="eyebrow">MEAL HISTORY</div>
+      <h2>食事履歴</h2>
+      <div id="mealList"></div>
+    </div>
+  </div>
+</section>
+
 <section id="settings" class="view settings">
   <div class="card"><div class="eyebrow">DATA</div><h2>データ管理</h2><p>ジャーナル・メモ・作品記録・設定はこのiPhone内に保存します。GitHubには個人記録を送信しません。</p><div class="export-row"><button id="exportData" class="btn primary">JSONバックアップ</button><label class="btn filebtn">JSON復元<input id="importData" type="file" accept="application/json,.json"></label><button id="clearData" class="btn">記録を初期化</button></div></div>
   <div class="card"><div class="eyebrow">VOICE CREDIT</div><h2>クレジット</h2><p>VOICEVOXの春日部つむぎ音声を登録して使う場合：<strong>VOICEVOX:春日部つむぎ</strong></p></div>
@@ -301,6 +344,7 @@ state.habits ||= ["S","ア","A","B","",""]; while(state.habits.length<6) state.h
 state.youtubeURL ||= "https://youtu.be/soJ4uc1mgKM?si=h-uqz3bM2RozKZJ7";
 state.memos ||= [];
 state.media ||= [];
+state.meals ||= {};
 let cur=new Date();cur.setDate(1);
 let total=1500,left=1500,tInt=null,midDone=false;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
@@ -317,7 +361,7 @@ function dim(){return new Date(cur.getFullYear(),cur.getMonth()+1,0).getDate()}
 function dayInfo(d){let x=new Date(cur.getFullYear(),cur.getMonth(),d);return {w:["日","月","火","水","木","金","土"][x.getDay()],sun:x.getDay()===0}}
 function render(){
  $("#monthTitle").textContent=`${cur.getMonth()+1}月`; $("#goal").value=month().goal||"";
- renderDaily();renderJournal();renderTracker();renderTasks();renderHabitLabels();renderTaskArchive();renderMemos();renderMedia();
+ renderDaily();renderJournal();renderTracker();renderTasks();renderHabitLabels();renderTaskArchive();renderMemos();renderMedia();renderMeals();
 }
 function renderHabitLabels(){$("#habitLabels").innerHTML=state.habits.map(x=>`<span>${x}</span>`).join("")}
 function renderDaily(){
@@ -437,11 +481,40 @@ function renderMedia(){
  $$("[data-medel]").forEach(b=>b.onclick=()=>{state.media=state.media.filter(x=>x.id!==b.dataset.medel);save();renderMedia()});
 }
 
+
+function renderMeals(){
+ let w=$("#mealList"); if(!w)return;
+ let entries=Object.entries(state.meals||{}).sort((a,b)=>b[0].localeCompare(a[0]));
+ w.innerHTML=entries.map(([date,m])=>{
+   const rows=[
+     ["朝",m.breakfast],["昼",m.lunch],["夜",m.dinner],["間食",m.snack]
+   ].filter(x=>String(x[1]||"").trim());
+   return `<div class="meal-entry">
+     <div class="meal-entry-head"><span class="meal-date">${esc(date.replaceAll("-","/"))}</span><button class="btn" data-mealdel="${date}">削除</button></div>
+     ${rows.length?rows.map(x=>`<div class="meal-row"><div class="meal-label">${x[0]}</div><div class="meal-text">${esc(x[1])}</div></div>`).join(""):'<div class="empty">食事内容なし</div>'}
+     ${m.note?`<div class="meal-note">${esc(m.note)}</div>`:""}
+   </div>`;
+ }).join("")||'<div class="empty">食事記録はまだありません。</div>';
+ $$("[data-mealdel]").forEach(b=>b.onclick=()=>{
+   if(confirm(`${b.dataset.mealdel} の食事記録を削除しますか？`)){
+     delete state.meals[b.dataset.mealdel]; save(); renderMeals();
+   }
+ });
+}
+function loadMealForm(date){
+ let m=(state.meals||{})[date]||{};
+ $("#mealBreakfast").value=m.breakfast||"";
+ $("#mealLunch").value=m.lunch||"";
+ $("#mealDinner").value=m.dinner||"";
+ $("#mealSnack").value=m.snack||"";
+ $("#mealNote").value=m.note||"";
+}
+
 function setView(v){
  $$(".tab").forEach(b=>b.classList.toggle("active",b.dataset.v===v));
  $$(".view").forEach(s=>s.classList.toggle("active",s.id===v));
  if(v==="tracker")setTimeout(renderTracker,20);
- if(v==="records"){renderTaskArchive();renderMemos();renderMedia()}
+ if(v==="records"){renderTaskArchive();renderMemos();renderMedia();renderMeals()}
 }
 
 function updateTimer(){$("#timer").textContent=`${pad(Math.floor(left/60))}:${pad(left%60)}`}
@@ -502,6 +575,7 @@ $$("[data-record]").forEach(b=>b.onclick=()=>{
  if(b.dataset.record==="archive")renderTaskArchive();
  if(b.dataset.record==="memo")renderMemos();
  if(b.dataset.record==="media")renderMedia();
+ if(b.dataset.record==="meal")renderMeals();
 });
 
 $("#addMemo").onclick=()=>{
@@ -538,6 +612,24 @@ $("#importData").onchange=async e=>{
    if(!d||typeof d!=="object")throw new Error();
    localStorage.setItem(KEY,JSON.stringify(d));location.reload();
  }catch(err){alert("バックアップJSONを読み込めませんでした。")}
+};
+
+
+$("#mealDate").value=new Date().toISOString().slice(0,10);
+loadMealForm($("#mealDate").value);
+$("#mealDate").onchange=()=>loadMealForm($("#mealDate").value);
+$("#saveMeal").onclick=()=>{
+ let date=$("#mealDate").value||new Date().toISOString().slice(0,10);
+ let breakfast=$("#mealBreakfast").value.trim(),
+     lunch=$("#mealLunch").value.trim(),
+     dinner=$("#mealDinner").value.trim(),
+     snack=$("#mealSnack").value.trim(),
+     note=$("#mealNote").value.trim();
+ if(!breakfast&&!lunch&&!dinner&&!snack&&!note)return alert("食事内容を1つ以上入力してください。");
+ state.meals[date]={breakfast,lunch,dinner,snack,note,updated:new Date().toISOString()};
+ save();renderMeals();
+ $("#saveMeal").textContent="保存しました";
+ setTimeout(()=>$("#saveMeal").textContent="今日の食事を保存",1200);
 };
 
 render();renderVoice();updateTimer();
