@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#e8f2ef">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>Journal Lab v1.2</title>
+<title>Journal Lab v1.3</title>
 <style>
 :root{--bg:#e8f2ef;--paper:#fbfdfc;--ink:#17383a;--muted:#6f8688;--line:#b6d7d1;--teal:#157f82;--red:#b96969;--blue:#3b6fa7;}
 *{box-sizing:border-box}
@@ -116,6 +116,14 @@ dialog{border:0;border-radius:18px;max-width:92vw;width:520px;padding:0} dialog:
 @media(max-width:430px){
  .record-tabs{grid-template-columns:repeat(2,1fr)}
  .meal-grid{grid-template-columns:1fr}
+}
+
+
+.media-link{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#f7fbfa;color:var(--teal);font-weight:900;text-decoration:none;font-size:12px}
+.media-link:active{transform:scale(.98)}
+.url-hint{font-size:11px;color:var(--muted);margin-top:-3px}
+@media(min-width:431px){
+ .stats-grid{grid-template-columns:repeat(5,1fr)}
 }
 
 </style>
@@ -251,8 +259,11 @@ dialog{border:0;border-radius:18px;max-width:92vw;width:520px;padding:0} dialog:
           <option value="movie">映画</option>
           <option value="manga">漫画</option>
           <option value="book">本</option>
+          <option value="youtube">YouTube</option>
         </select>
-        <input id="mediaTitle" type="text" placeholder="作品名">
+        <input id="mediaTitle" type="text" placeholder="作品名 / 動画タイトル">
+        <input id="mediaUrl" type="url" inputmode="url" placeholder="URL（任意・YouTubeなら動画URL）">
+        <div class="url-hint">URLを登録すると、作品ログから1タップで開けます。</div>
         <input id="mediaDate" type="date">
         <div>
           <div style="font-size:12px;font-weight:800;color:var(--muted);margin:2px 0 7px">ランク</div>
@@ -280,6 +291,7 @@ dialog{border:0;border-radius:18px;max-width:92vw;width:520px;padding:0} dialog:
           <option value="movie">映画</option>
           <option value="manga">漫画</option>
           <option value="book">本</option>
+          <option value="youtube">YouTube</option>
         </select>
         <select id="mediaRankFilter" class="select">
           <option value="all">すべてのランク</option>
@@ -442,9 +454,10 @@ function combinedChart(){
 }
 function renderTasks(){let m=month(),w=$("#taskList");w.innerHTML="";m.tasks.forEach((t,i)=>{let r=document.createElement("div");r.className="taskitem";r.innerHTML=`<input type="checkbox" ${t.done?"checked":""} data-tc="${i}"><input type="text" value="${(t.text||"").replace(/"/g,"&quot;")}" data-tt="${i}"><button class="btn" data-td="${i}">×</button>`;w.appendChild(r)});$$("[data-tc]").forEach(x=>x.onchange=()=>{m.tasks[+x.dataset.tc].done=x.checked;save()});$$("[data-tt]").forEach(x=>x.oninput=e=>{m.tasks[+x.dataset.tt].text=e.target.value;save()});$$("[data-td]").forEach(x=>x.onclick=()=>{m.tasks.splice(+x.dataset.td,1);save();renderTasks()})}
 
-const MEDIA_LABEL={anime:"アニメ",movie:"映画",manga:"漫画",book:"本"};
+const MEDIA_LABEL={anime:"アニメ",movie:"映画",manga:"漫画",book:"本",youtube:"YouTube"};
 let selectedMediaRank="";
 function esc(s=""){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function safeUrl(u=""){try{let x=new URL(String(u));return /^https?:$/.test(x.protocol)?x.href:"#"}catch(e){return "#"}}
 
 function renderTaskArchive(){
  let w=$("#taskArchive");if(!w)return;
@@ -475,9 +488,9 @@ function renderMedia(){
  if([...monthSel.options].some(o=>o.value===prev))monthSel.value=prev;
  let mf=monthSel.value,tf=typeSel.value,rf=rankSel.value;
  let all=state.media||[],filtered=all.filter(x=>(mf==="all"||x.month===mf)&&(tf==="all"||x.type===tf)&&(rf==="all"||x.rank===rf)).sort((a,b)=>(b.date||"").localeCompare(a.date||""));
- let counts={anime:0,movie:0,manga:0,book:0};filtered.forEach(x=>counts[x.type]=(counts[x.type]||0)+1);
+ let counts={anime:0,movie:0,manga:0,book:0,youtube:0};filtered.forEach(x=>counts[x.type]=(counts[x.type]||0)+1);
  stats.innerHTML=Object.keys(counts).map(k=>`<div class="stat"><b>${counts[k]}</b><span>${MEDIA_LABEL[k]}</span></div>`).join("");
- list.innerHTML=filtered.map(x=>`<div class="media-item"><div class="media-meta"><span>${esc(x.date||"")}</span><button class="btn" data-medel="${x.id}">削除</button></div><div class="media-top"><span class="media-type">${MEDIA_LABEL[x.type]||x.type}</span>${x.rank?`<span class="rank-badge rank-${x.rank}">${x.rank}</span>`:""}<div class="media-title">${esc(x.title)}</div></div>${x.note?`<div class="media-note">${esc(x.note)}</div>`:""}</div>`).join("")||'<div class="empty">この条件の作品記録はありません。</div>';
+ list.innerHTML=filtered.map(x=>`<div class="media-item"><div class="media-meta"><span>${esc(x.date||"")}</span><button class="btn" data-medel="${x.id}">削除</button></div><div class="media-top"><span class="media-type">${MEDIA_LABEL[x.type]||x.type}</span>${x.rank?`<span class="rank-badge rank-${x.rank}">${x.rank}</span>`:""}<div class="media-title">${esc(x.title)}</div></div>${x.note?`<div class="media-note">${esc(x.note)}</div>`:""}${x.url?`<a class="media-link" href="${safeUrl(x.url)}" target="_blank" rel="noopener noreferrer">▶ 動画・ページを開く</a>`:""}</div>`).join("")||'<div class="empty">この条件の作品記録はありません。</div>';
  $$("[data-medel]").forEach(b=>b.onclick=()=>{state.media=state.media.filter(x=>x.id!==b.dataset.medel);save();renderMedia()});
 }
 
@@ -590,12 +603,19 @@ $$("[data-rank]").forEach(b=>b.onclick=()=>{
  $$("[data-rank]").forEach(x=>x.classList.toggle("active",x.dataset.rank===selectedMediaRank));
 });
 
+
+$("#mediaType").onchange=()=>{
+ let isYT=$("#mediaType").value==="youtube";
+ $("#mediaTitle").placeholder=isYT?"YouTube動画タイトル":"作品名";
+ $("#mediaUrl").placeholder=isYT?"YouTube URL（https://youtu.be/...）":"URL（任意）";
+};
+
 $("#mediaDate").value=new Date().toISOString().slice(0,10);
 $("#addMedia").onclick=()=>{
- let type=$("#mediaType").value,title=$("#mediaTitle").value.trim(),date=$("#mediaDate").value||new Date().toISOString().slice(0,10),note=$("#mediaNote").value.trim(),rank=selectedMediaRank;
+ let type=$("#mediaType").value,title=$("#mediaTitle").value.trim(),url=$("#mediaUrl").value.trim(),date=$("#mediaDate").value||new Date().toISOString().slice(0,10),note=$("#mediaNote").value.trim(),rank=selectedMediaRank;
  if(!title)return alert("作品名を入力してください。");
- state.media.push({id:crypto.randomUUID(),type,title,date,month:mediaMonthKey(date),rank,note,created:new Date().toISOString()});
- $("#mediaTitle").value="";$("#mediaNote").value="";selectedMediaRank="";$$("[data-rank]").forEach(x=>x.classList.remove("active"));save();renderMedia();
+ state.media.push({id:crypto.randomUUID(),type,title,url,date,month:mediaMonthKey(date),rank,note,created:new Date().toISOString()});
+ $("#mediaTitle").value="";$("#mediaUrl").value="";$("#mediaNote").value="";selectedMediaRank="";$$("[data-rank]").forEach(x=>x.classList.remove("active"));save();renderMedia();
 };
 $("#mediaMonthFilter").onchange=renderMedia;
 $("#mediaTypeFilter").onchange=renderMedia;
